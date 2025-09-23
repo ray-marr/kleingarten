@@ -1,5 +1,7 @@
+"use client";
 import Link from "next/link";
 import { Caveat } from "next/font/google";
+import { useSearchParams } from "next/navigation";
 
 const caveatFont = Caveat({
   variable: "--font-caveat",
@@ -7,6 +9,10 @@ const caveatFont = Caveat({
 });
 
 export default function Header() {
+  const params = useSearchParams();
+  const itemValue = params.get("item") || "";
+  const locationValue = params.get("location") || "";
+
   return (
     <header className="border-b bg-emerald-600 text-white">
       <div className="mx-auto max-w-6xl px-4 py-4">
@@ -59,6 +65,7 @@ export default function Header() {
                   name="item"
                   type="search"
                   placeholder="Kleingärten durchsuchen"
+                  defaultValue={itemValue}
                   className="w-full rounded-sm bg-white text-gray-900 placeholder:text-gray-400 border border-gray-300 pl-9 pr-3 py-2 text-sm outline-none focus:border-emerald-600"
                 />
               </div>
@@ -79,6 +86,7 @@ export default function Header() {
                   name="location"
                   type="search"
                   placeholder="Ort oder PLZ"
+                  defaultValue={locationValue}
                   className="w-full rounded-sm bg-white text-gray-900 placeholder:text-gray-400 border border-gray-300 pl-9 pr-3 py-2 text-sm outline-none focus:border-emerald-600"
                 />
               </div>
