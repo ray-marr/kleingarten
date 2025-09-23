@@ -1,8 +1,7 @@
 type SearchParams = { [key: string]: string | string[] | undefined };
 
-export default function Results({ searchParams }: { searchParams: SearchParams }) {
-  const item = (searchParams["item"] ?? "") as string;
-  const location = (searchParams["location"] ?? "") as string;
+export default async function Results({ searchParams }: { searchParams: SearchParams }) {
+    const {item, location} = await searchParams;
 
   return (
     <div className="space-y-6">
