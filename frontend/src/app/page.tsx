@@ -51,7 +51,7 @@ export default function Home() {
         <ol className="mt-4 grid gap-4 sm:grid-cols-3 hiw-steps">
           <li className="rounded-md border border-emerald-100 bg-white p-6">
             <p className="font-semibold text-emerald-900">Suchen</p>
-            <p className="text-emerald-900/80">Nutze die Suche oben - z.B. "Äpfel" oder "Ableger", optional mit Ort/PLZ.</p>
+            <p className="text-emerald-900/80">Nutze die Suche oben - z.B. &quot;Äpfel&quot; oder &quot;Ableger&quot;, optional mit Ort/PLZ.</p>
           </li>
           <li className="rounded-md border border-emerald-100 bg-white p-6">
             <p className="font-semibold text-emerald-900">Kontakt aufnehmen</p>

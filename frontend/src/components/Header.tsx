@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { Caveat } from "next/font/google";
 import { useSearchParams } from "next/navigation";
-
 const caveatFont = Caveat({
   variable: "--font-caveat",
   subsets: ["latin"],
@@ -49,7 +48,8 @@ export default function Header() {
             action="/results"
             method="get"
           >
-            <div className="flex-1">
+
+              <div className="flex-1">
               <label htmlFor="search-item" className="sr-only">
                 Kleingärten durchsuchen
               </label>

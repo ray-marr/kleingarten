@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Analytics } from "@vercel/analytics/next";
+import {Suspense} from "react";
 
 const geistSansFont = Geist({
   variable: "--font-geist-sans",
@@ -37,7 +38,9 @@ export default async function RootLayout({
           className={`${geistSansFont.variable} ${geistMonoFont.variable} antialiased min-h-screen flex flex-col`}
           style={{backgroundColor: "#e7dad9"}}
       >
+      <Suspense>
         <Header />
+      </Suspense>
 
         <main className="mx-auto max-w-6xl px-4 py-6 flex-1 w-full">
             <div className="flex">
