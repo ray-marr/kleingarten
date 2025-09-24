@@ -6,7 +6,7 @@ type SearchParams = { [key: string]: string | string[] | undefined };
 type Props = { searchParams: SearchParams };
 
 export default async function Results({ searchParams }: Props) {
-  const {item, location, page: pageParam} = searchParams;
+  const {item, location, page: pageParam} = await searchParams;
   const page = Number(pageParam) || 1;
 
   // Call server action on page load to get paginated mock results

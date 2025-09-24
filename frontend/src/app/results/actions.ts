@@ -1,5 +1,6 @@
 "use server";
 
+import { v2 as cloudinary } from "cloudinary";
 export type Ad = {
   title: string;
   description: string;
@@ -41,4 +42,75 @@ export async function searchAds(req: SearchRequest): Promise<SearchResponse> {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   return { items, total, page, pageSize };
+}
+
+// ==========================
+// Cloudinary server actions
+// ==========================
+
+function ensureCloudinaryConfigured() {
+  const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
+  const api_key = process.env.CLOUDINARY_API_KEY;
+  const api_secret = process.env.CLOUDINARY_API_SECRET;
+
+  if (!cloud_name || !api_key || !api_secret) {
+    throw new Error(
+      "Cloudinary is not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in your environment."
+    );
+  }
+
+  cloudinary.config({ cloud_name, api_key, api_secret });
+}
+
+/**
+ * Upload an image to Cloudinary from a remote URL.
+ * Returns Cloudinary upload response with selected fields.
+ */
+export async function uploadImageFromUrl(imageUrl: string, publicId?: string): Promise<{
+  publicId: string;
+  url: string;
+  secureUrl: string;
+  assetId?: string;
+  version?: number;
+}> {
+  if (!imageUrl || typeof imageUrl !== "string") {
+    throw new Error("imageUrl is required and must be a string");
+  }
+
+  ensureCloudinaryConfigured();
+
+  try {
+    const result = await cloudinary.uploader.upload(imageUrl, {
+      public_id: publicId,
+    });
+
+    return {
+      publicId: result.public_id,
+      url: result.url,
+      secureUrl: result.secure_url,
+      assetId: result.asset_id,
+      version: result.version,
+    };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Cloudinary upload failed: ${message}`);
+  }
+}
+
+/**
+ * Get a direct URL to download an image from Cloudinary by its publicId.
+ * Optionally, apply basic optimization (auto format/quality).
+ */
+
+// TODO: test public image - 'samples/food/fish-vegetables'
+export async function getImageDownloadUrl(publicId: string, options?: { optimize?: boolean }): Promise<string> {
+  if (!publicId) {
+    throw new Error("publicId is required");
+  }
+
+  ensureCloudinaryConfigured();
+
+  const optimize = options?.optimize ?? true;
+  const url = cloudinary.url(publicId, optimize ? { fetch_format: "auto", quality: "auto" } : {});
+  return url;
 }
