@@ -1,10 +1,15 @@
 "use server";
 
 import { v2 as cloudinary } from "cloudinary";
+import { db } from "@/db/client";
+import { ads, images } from "@/db/schema";
+import { and, eq, ilike, inArray, or, sql } from "drizzle-orm";
+
 export type Ad = {
+  id: number;
   title: string;
   description: string;
-  thumbnail: string;
+  thumbnail?: string; // Cloudinary URL if available
 };
 
 export type SearchRequest = {
@@ -21,96 +26,75 @@ export type SearchResponse = {
   pageSize: number;
 };
 
-// Mock data: 15 ads total
-const ALL_ADS: Ad[] = Array.from({ length: 15 }).map((_, i) => ({
-  title: `Apfel ${i + 1}`,
-  description: "Ich habe eine menge Apfel zu verschenken",
-  thumbnail: "todo",
-}));
-
 export async function searchAds(req: SearchRequest): Promise<SearchResponse> {
-  // In a real scenario, you would query your database here using req.item/location
   const pageSize = typeof req.pageSize === "number" && req.pageSize > 0 ? req.pageSize : 10;
   const page = typeof req.page === "number" && req.page > 0 ? req.page : 1;
+  const offset = (page - 1) * pageSize;
 
-  // Optionally filter based on item/location; for now, return all
-  const total = ALL_ADS.length;
-  const start = (page - 1) * pageSize;
-  const end = start + pageSize;
-  const items = ALL_ADS.slice(start, end);
+  // Build simple text filter for title/description from `item`
+  const itemValue = Array.isArray(req.item) ? req.item[0] : req.item;
+  const q = itemValue?.trim();
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  // Where clause (currently only item filter; location reserved for future)
+  const where = q ? or(ilike(ads.title, `%${q}%`), ilike(ads.description, `%${q}%`)) : undefined;
 
-  return { items, total, page, pageSize };
-}
+  // Total count
+  const totalRes = await db.execute(sql`SELECT count(*)::int AS c FROM ${ads} ${where ? sql`WHERE ${where}` : sql``}`);
+  const total = Array.isArray(totalRes.rows) && totalRes.rows[0] ? (totalRes.rows[0] as any).c as number : 0;
 
-// ==========================
-// Cloudinary server actions
-// ==========================
+  // Page of ads
+  const adRows = await db.select({ id: ads.id, title: ads.title, description: ads.description })
+    .from(ads)
+    .where(where as any)
+    .orderBy(sql`${ads.id} DESC`)
+    .limit(pageSize)
+    .offset(offset);
 
-function ensureCloudinaryConfigured() {
+  if (adRows.length === 0) {
+    return { items: [], total, page, pageSize };
+  }
+
+  // Fetch first image (by earliest images.id) per ad
+  const adIds = adRows.map((r) => r.id);
+  const imageRows = await db
+    .select({ adsId: images.adsId, publicId: images.url }) // we store public_id in url field (<=50)
+    .from(images)
+    .where(inArray(images.adsId, adIds))
+    .orderBy(images.adsId, images.id);
+
+  const firstImageByAd = new Map<number, string>();
+  for (const row of imageRows) {
+    if (row.adsId != null && !firstImageByAd.has(row.adsId)) {
+      firstImageByAd.set(row.adsId, row.publicId ?? "");
+    }
+  }
+
+  // Ensure Cloudinary is configured for URL generation
   const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
   const api_key = process.env.CLOUDINARY_API_KEY;
   const api_secret = process.env.CLOUDINARY_API_SECRET;
-
-  if (!cloud_name || !api_key || !api_secret) {
-    throw new Error(
-      "Cloudinary is not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in your environment."
-    );
+  if (cloud_name) {
+    // For URL generation, cloud_name is sufficient; include keys if available
+    cloudinary.config({ cloud_name, api_key, api_secret } as any);
   }
 
-  cloudinary.config({ cloud_name, api_key, api_secret });
-}
+  const items: Ad[] = adRows.map((r) => {
+    const publicId = firstImageByAd.get(r.id);
+    let thumbnail: string | undefined = undefined;
+    if (publicId) {
+      // Generate a small, cropped thumbnail URL
+      thumbnail = cloudinary.url(publicId, {
+        width: 96,
+        height: 96,
+        crop: "fill",
+        gravity: "auto",
+        fetch_format: "auto",
+        quality: "auto",
+        secure: true,
+      });
+    }
+    return { id: r.id, title: r.title, description: r.description, thumbnail };
+  });
 
-/**
- * Upload an image to Cloudinary from a remote URL.
- * Returns Cloudinary upload response with selected fields.
- */
-export async function uploadImageFromUrl(imageUrl: string, publicId?: string): Promise<{
-  publicId: string;
-  url: string;
-  secureUrl: string;
-  assetId?: string;
-  version?: number;
-}> {
-  if (!imageUrl || typeof imageUrl !== "string") {
-    throw new Error("imageUrl is required and must be a string");
-  }
-
-  ensureCloudinaryConfigured();
-
-  try {
-    const result = await cloudinary.uploader.upload(imageUrl, {
-      public_id: publicId,
-    });
-
-    return {
-      publicId: result.public_id,
-      url: result.url,
-      secureUrl: result.secure_url,
-      assetId: result.asset_id,
-      version: result.version,
-    };
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Cloudinary upload failed: ${message}`);
-  }
-}
-
-/**
- * Get a direct URL to download an image from Cloudinary by its publicId.
- * Optionally, apply basic optimization (auto format/quality).
- */
-
-// TODO: test public image - 'samples/food/fish-vegetables'
-export async function getImageDownloadUrl(publicId: string, options?: { optimize?: boolean }): Promise<string> {
-  if (!publicId) {
-    throw new Error("publicId is required");
-  }
-
-  ensureCloudinaryConfigured();
-
-  const optimize = options?.optimize ?? true;
-  const url = cloudinary.url(publicId, optimize ? { fetch_format: "auto", quality: "auto" } : {});
-  return url;
+  return { items, total, page, pageSize };
 }

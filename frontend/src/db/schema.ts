@@ -1,5 +1,7 @@
-import { integer, pgTable, serial, text, varchar, customType } from "drizzle-orm/pg-core";
+import { integer, pgTable, serial, text, varchar, customType, timestamp, pgEnum } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+
+export const adStatusEnum = pgEnum("ad_statuses", ["OPEN", "CLOSED", "HIDDEN"]);
 
 // Custom PostGIS geography(Point,4326) type
 export const geographyPoint = customType<{ data: unknown; driverData: unknown }>(
@@ -30,6 +32,8 @@ export const ads = pgTable("ads", {
   // Drizzle schema uses a custom type placeholder for typing.
   coordinates: geographyPoint("coordinates" as never),
   address: varchar("address", { length: 100 }),
+  creationTimeStamp: timestamp("created_at"),
+  status: adStatusEnum().notNull().default("OPEN"),
 });
 
 export const images = pgTable("images", {

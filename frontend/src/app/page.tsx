@@ -20,7 +20,7 @@ export default function Home() {
               Angebote entdecken
             </a>
             <a
-              href="#"
+              href="/neu"
               className="inline-flex items-center justify-center rounded-sm border border-yellow-200/70 px-5 py-2.5 font-semibold text-yellow-100 hover:bg-emerald-600"
             >
               Angebot einstellen

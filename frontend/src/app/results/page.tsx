@@ -32,18 +32,37 @@ export default async function Results({ searchParams }: Props) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 grow-1">
       <h1 className="text-2xl font-bold text-emerald-900">Ergebnisse</h1>
       <div className="space-y-3">
         <p className="text-emerald-900/80 text-sm">{foundText}</p>
-        <ul className="grid gap-3">
-          {items.map((ad, idx) => (
-            <li key={`${ad.title}-${idx}`} className="rounded-md border border-emerald-100 bg-white p-4 text-emerald-900">
-              <div className="flex items-start gap-3">
-                <div className="h-12 w-12 rounded bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs">{ad.thumbnail}</div>
-                <div>
-                  <h2 className="font-semibold">{ad.title}</h2>
-                  <p className="text-sm text-emerald-900/80">{ad.description}</p>
+        <ul className="grid grid-cols-1 gap-3">
+          {items.map((ad) => (
+            <li key={ad.id} className="w-full max-w-2xl h-24 overflow-hidden rounded-md bg-white text-emerald-900 shadow-md">
+              <div className="flex h-full items-stretch gap-3">
+                <div className="relative">
+                  {ad.thumbnail ? (
+                  <img
+                    src={ad.thumbnail}
+                    alt={ad.title}
+                    className="h-24 w-24 object-cover"
+                    width={96}
+                    height={96}
+                  />
+                ) : (
+                  <div className="h-24 w-24 bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs">
+                    {ad.title.slice(0, 1).toUpperCase()}
+                  </div>
+                )}
+                  <div className="absolute bottom-0 right-0 p-1 rounded-sm backdrop-blur-md">
+                      {/* todo: add icon and check number of images */}
+                      {/*<img src={cameraIcon} alt="Camera" width={20} height={20} />*/}
+                      <span className="text-emerald-900/80 text-white ml-2">1</span>
+                  </div>
+                </div>
+                <div className="flex-1 p-3 pr-4 overflow-hidden content-center">
+                  <h2 className="font-semibold text-2xl">{ad.title}</h2>
+                  <p className="text-sm text-emerald-900/80">Posted x days ago</p>
                 </div>
               </div>
             </li>
