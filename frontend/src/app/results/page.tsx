@@ -3,7 +3,7 @@ import { searchAds } from "./actions";
 
 type SearchParams = { [key: string]: string | string[] | undefined };
 
-type Props = { searchParams: SearchParams };
+type Props = { searchParams: Promise<SearchParams> };
 
 export default async function Results({ searchParams }: Props) {
   const {item, location, page: pageParam} = await searchParams;
@@ -22,7 +22,7 @@ export default async function Results({ searchParams }: Props) {
   else if (locationLabel) foundText += ` in ${locationLabel}.`;
   else foundText += ".";
 
-  // Helper to preserve existing query params while changing page
+  // Helper to preserve existing query params while changing the page
   const makePageHref = (p: number) => {
     const params = new URLSearchParams();
     if (typeof item === "string" && item) params.set("item", item);
