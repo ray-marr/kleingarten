@@ -4,7 +4,7 @@ import "./globals.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Analytics } from "@vercel/analytics/next";
-import {Suspense} from "react";
+import { Suspense } from "react";
 
 const geistSansFont = Geist({
   variable: "--font-geist-sans",
@@ -16,9 +16,8 @@ const geistMonoFont = Geist_Mono({
   subsets: ["latin"],
 });
 
-
 export const metadata: Metadata = {
-  title: { default: "Kleingarten", template: "%s | Kleingarten"} ,
+  title: { default: "Kleingarten", template: "%s | Kleingarten" },
   description: "Kleingarten handeln",
   icons: {
     icon: "/logo.svg",
@@ -35,17 +34,15 @@ export default async function RootLayout({
   return (
     <html lang="de">
       <body
-          className={`${geistSansFont.variable} ${geistMonoFont.variable} antialiased min-h-screen flex flex-col`}
-          style={{backgroundColor: "#e7dad9"}}
+        className={`${geistSansFont.variable} ${geistMonoFont.variable} antialiased min-h-screen flex flex-col`}
+        style={{ backgroundColor: "#e7dad9" }}
       >
-      <Suspense>
-        <Header />
-      </Suspense>
+        <Suspense>
+          <Header />
+        </Suspense>
 
         <main className="mx-auto max-w-6xl px-4 py-6 flex-1 w-full">
-            <div className="flex">
-                {children}
-            </div>
+          <div className="flex">{children}</div>
         </main>
 
         <Footer />

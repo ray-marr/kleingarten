@@ -1,0 +1,4 @@
+# Ignore artifacts:
+drizzle
+.next
+node_modules

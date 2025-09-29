@@ -6,7 +6,9 @@ import { resolve } from "path";
 // Load .env when running outside the Next.js runtime
 loadEnv({ path: resolve(process.cwd(), "frontend/.env") });
 
-const connectionString = process.env.DATABASE_URL || "postgres://postgres:mysecretpassword@localhost:5432/postgres";
+const connectionString =
+  process.env.DATABASE_URL ||
+  "postgres://postgres:mysecretpassword@localhost:5432/postgres";
 
 export const pool = new Pool({ connectionString });
 export const db = drizzle(pool);

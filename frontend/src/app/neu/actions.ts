@@ -18,8 +18,12 @@ export type ActionResult = {
 
 export async function createAdvert(formData: FormData): Promise<ActionResult> {
   const title = (formData.get("title") as string | null)?.trim() || "";
-  const description = (formData.get("description") as string | null)?.trim() || "";
-  const imagePublicIds = formData.getAll("imagePublicId").map((v) => String(v)).filter(Boolean);
+  const description =
+    (formData.get("description") as string | null)?.trim() || "";
+  const imagePublicIds = formData
+    .getAll("imagePublicId")
+    .map((v) => String(v))
+    .filter(Boolean);
 
   const errors: ActionResult["fieldErrors"] = {};
 
@@ -33,9 +37,7 @@ export async function createAdvert(formData: FormData): Promise<ActionResult> {
   } else if (description.length > 500) {
     errors.description = "Maximal 500 Zeichen";
   }
-  if (imagePublicIds.length === 0) {
-    errors.images = "Bitte lade mindestens ein Bild hoch";
-  } else if (imagePublicIds.length > MAX_FILES) {
+  if (imagePublicIds.length > MAX_FILES) {
     errors.images = `Maximal ${MAX_FILES} Bilder erlaubt`;
   }
   if (imagePublicIds.some((id) => id.length > 50)) {
@@ -47,7 +49,9 @@ export async function createAdvert(formData: FormData): Promise<ActionResult> {
   }
 
   // Ensure dummy user id=1 exists to satisfy FK
-  await db.execute(sql`INSERT INTO users (id, username) VALUES (1, 'dummy') ON CONFLICT (id) DO NOTHING;`);
+  await db.execute(
+    sql`INSERT INTO users (id, username) VALUES (1, 'dummy') ON CONFLICT (id) DO NOTHING;`,
+  );
 
   // Insert the advert first
   const [ad] = await db
@@ -58,7 +62,11 @@ export async function createAdvert(formData: FormData): Promise<ActionResult> {
   // Save images metadata using public_id as image name (<= 50 chars)
   if (imagePublicIds.length > 0) {
     await db.insert(images).values(
-      imagePublicIds.map((public_id) => ({ adsId: ad.id, imageName: public_id, url: public_id }))
+      imagePublicIds.map((public_id) => ({
+        adsId: ad.id,
+        imageName: public_id,
+        url: public_id,
+      })),
     );
   }
 

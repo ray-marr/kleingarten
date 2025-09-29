@@ -1,20 +1,30 @@
-import { integer, pgTable, serial, text, varchar, customType, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import {
+  integer,
+  pgTable,
+  serial,
+  text,
+  varchar,
+  customType,
+  timestamp,
+  pgEnum,
+} from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 export const adStatusEnum = pgEnum("ad_statuses", ["OPEN", "CLOSED", "HIDDEN"]);
 
 // Custom PostGIS geography(Point,4326) type
-export const geographyPoint = customType<{ data: unknown; driverData: unknown }>(
-  {
-    dataType() {
-      return "geography(Point,4326)";
-    },
-    toDriver() {
-      // Pass-through; you can serialize to WKT or GeoJSON upstream as needed
-      return sql.raw("$1");
-    },
-  }
-);
+export const geographyPoint = customType<{
+  data: unknown;
+  driverData: unknown;
+}>({
+  dataType() {
+    return "geography(Point,4326)";
+  },
+  toDriver() {
+    // Pass-through; you can serialize to WKT or GeoJSON upstream as needed
+    return sql.raw("$1");
+  },
+});
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),

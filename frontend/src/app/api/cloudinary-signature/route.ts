@@ -9,7 +9,7 @@ export async function GET() {
     // Sign the parameters for a secure, signed upload
     const signature = cloudinary.utils.api_sign_request(
       { timestamp, folder },
-      process.env.CLOUDINARY_API_SECRET as string
+      process.env.CLOUDINARY_API_SECRET as string,
     );
 
     return NextResponse.json({
@@ -20,6 +20,10 @@ export async function GET() {
       apiKey: process.env.CLOUDINARY_API_KEY,
     });
   } catch (e) {
-    return NextResponse.json({ error: "Failed to generate signature" }, { status: 500 });
+    console.error("Error generating signature:", e);
+    return NextResponse.json(
+      { error: "Failed to generate signature" },
+      { status: 500 },
+    );
   }
 }
