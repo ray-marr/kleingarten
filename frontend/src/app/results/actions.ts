@@ -10,6 +10,8 @@ export type Ad = {
   title: string;
   description: string;
   thumbnail?: string; // Cloudinary URL if available
+  imageCount: number; // total images for this ad
+  created: Date; // iso datetime string
 };
 
 export type SearchRequest = {
@@ -52,7 +54,12 @@ export async function searchAds(req: SearchRequest): Promise<SearchResponse> {
 
   // Page of ads
   const adRows = await db
-    .select({ id: ads.id, title: ads.title, description: ads.description })
+    .select({
+      id: ads.id,
+      title: ads.title,
+      description: ads.description,
+      created: ads.creationTimeStamp,
+    })
     .from(ads)
     .where(where)
     .orderBy(sql`${ads.id} DESC`)
@@ -72,9 +79,13 @@ export async function searchAds(req: SearchRequest): Promise<SearchResponse> {
     .orderBy(images.adsId, images.id);
 
   const firstImageByAd = new Map<number, string>();
+  const imageCountByAd = new Map<number, number>();
   for (const row of imageRows) {
-    if (row.adsId != null && !firstImageByAd.has(row.adsId)) {
-      firstImageByAd.set(row.adsId, row.publicId ?? "");
+    if (row.adsId != null) {
+      if (!firstImageByAd.has(row.adsId)) {
+        firstImageByAd.set(row.adsId, row.publicId ?? "");
+      }
+      imageCountByAd.set(row.adsId, (imageCountByAd.get(row.adsId) || 0) + 1);
     }
   }
 
@@ -102,7 +113,15 @@ export async function searchAds(req: SearchRequest): Promise<SearchResponse> {
         secure: true,
       });
     }
-    return { id: r.id, title: r.title, description: r.description, thumbnail };
+    const imageCount = imageCountByAd.get(r.id) || 0;
+    return {
+      id: r.id,
+      title: r.title,
+      description: r.description,
+      thumbnail,
+      imageCount,
+      created: r.created,
+    };
   });
 
   return { items, total, page, pageSize };

@@ -42,7 +42,7 @@ export const ads = pgTable("ads", {
   // Drizzle schema uses a custom type placeholder for typing.
   coordinates: geographyPoint("coordinates" as never),
   address: varchar("address", { length: 100 }),
-  creationTimeStamp: timestamp("created_at"),
+  creationTimeStamp: timestamp("created_at").defaultNow().notNull(),
   status: adStatusEnum().notNull().default("OPEN"),
 });
 

@@ -129,7 +129,7 @@ export default function NewAdvertPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl space-y-6 w-full">
       <h1 className="text-3xl font-bold text-emerald-900">
         Neues Angebot einstellen
       </h1>
@@ -142,7 +142,7 @@ export default function NewAdvertPage() {
         <div>
           <label
             htmlFor="title"
-            className="block text-sm font-medium text-emerald-900"
+            className="block text-xl font-medium text-emerald-900"
           >
             Titel
           </label>
@@ -152,7 +152,7 @@ export default function NewAdvertPage() {
             type="text"
             required
             maxLength={50}
-            className="mt-1 block w-full rounded-md border border-emerald-200 p-2"
+            className="mt-1 block w-full rounded-md border border-emerald-900 p-2 bg-white text-emerald-900"
             placeholder="z.B. Äpfel aus dem Garten"
           />
           {state.fieldErrors?.title && (
@@ -165,7 +165,7 @@ export default function NewAdvertPage() {
         <div>
           <label
             htmlFor="description"
-            className="block text-sm font-medium text-emerald-900"
+            className="block text-xl font-medium text-emerald-900"
           >
             Beschreibung
           </label>
@@ -175,7 +175,7 @@ export default function NewAdvertPage() {
             required
             maxLength={500}
             rows={5}
-            className="mt-1 block w-full rounded-md border border-emerald-200 p-2"
+            className="mt-1 block w-full rounded-md border border-emerald-900 p-2 bg-white text-emerald-900"
             placeholder="Beschreibe dein Angebot..."
           />
           {state.fieldErrors?.description && (
@@ -189,9 +189,9 @@ export default function NewAdvertPage() {
         <div>
           <label
             htmlFor="images"
-            className="block text-sm font-medium text-emerald-900"
+            className="block text-xl font-medium text-emerald-900"
           >
-            Bilder (bis zu 5)
+            Bilder
           </label>
           <input
             ref={fileInputRef}

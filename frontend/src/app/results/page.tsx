@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { searchAds } from "./actions";
 import Image from "next/image";
+import { Camera, CameraOff } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 type SearchParams = { [key: string]: string | string[] | undefined };
 
@@ -67,22 +69,27 @@ export default async function Results({ searchParams }: Props) {
                       height={96}
                     />
                   ) : (
-                    <div className="h-24 w-24 bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs">
+                    <div className="h-24 w-24 bg-emerald-100 text-emerald-700 flex items-center justify-center text-7xl">
                       {ad.title.slice(0, 1).toUpperCase()}
                     </div>
                   )}
-                  <div className="absolute bottom-0 right-0 p-1 rounded-sm backdrop-blur-md">
-                    {/* todo: add icon and check number of images */}
-                    {/*<Image src={cameraIcon} alt="Camera" width={20} height={20} />*/}
-                    <span className="text-emerald-900/80 text-white ml-2">
-                      1
-                    </span>
+                  <div className="absolute bottom-0 right-0 p-1 rounded-sm bg-black/60 flex items-center gap-1">
+                    {ad.imageCount ? (
+                      <>
+                        <Camera className="h-5 w-5 text-white" />
+                        <span className="text-white text-xs font-medium">
+                          {ad.imageCount}
+                        </span>
+                      </>
+                    ) : (
+                      <CameraOff className="h-5 w-5 text-white" />
+                    )}
                   </div>
                 </div>
                 <div className="flex-1 p-3 pr-4 overflow-hidden content-center">
                   <h2 className="font-semibold text-2xl">{ad.title}</h2>
                   <p className="text-sm text-emerald-900/80">
-                    Posted x days ago
+                    Posted {formatDistanceToNow(ad.created)} ago
                   </p>
                 </div>
               </div>

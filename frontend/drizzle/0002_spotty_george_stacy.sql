@@ -1,0 +1,1 @@
+ALTER TABLE "ads" ALTER COLUMN "created_at" SET DEFAULT now();
