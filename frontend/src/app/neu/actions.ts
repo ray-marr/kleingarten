@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { ads, images } from "@/db/schema";
 import { sql } from "drizzle-orm";
+import { generateRandomSlug } from "@/app/_helpers/stringTools";
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -56,16 +57,17 @@ export async function createAdvert(formData: FormData): Promise<ActionResult> {
   // Insert the advert first
   const [ad] = await db
     .insert(ads)
-    .values({ title, description, userId: 1 })
+    .values({ title, description, userId: 1, slug: generateRandomSlug() })
     .returning({ id: ads.id });
 
   // Save images metadata using public_id as image name (<= 50 chars)
   if (imagePublicIds.length > 0) {
     await db.insert(images).values(
-      imagePublicIds.map((public_id) => ({
+      imagePublicIds.map((public_id, idx) => ({
         adsId: ad.id,
         imageName: public_id,
         url: public_id,
+        primaryImage: idx === 0, // first image is the Titelbild
       })),
     );
   }

@@ -61,3 +61,86 @@ body {
     outline-offset: 2px;
     border-radius: 2px;
 }
+
+
+/* Typography for content pages */
+.prose {
+  line-height: 1.75;
+  color: #064e3b; /* emerald-900 */
+}
+
+.prose h1 {
+  font-size: clamp(2rem, 1.2rem + 2vw, 2.5rem);
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0 0 1rem 0;
+}
+
+.prose h2 {
+  font-size: clamp(1.5rem, 1.1rem + 1vw, 2rem);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  margin: 2rem 0 0.75rem 0; /* good separation between sections */
+}
+
+.prose h3 {
+  font-size: clamp(1.25rem, 1.05rem + 0.5vw, 1.5rem);
+  line-height: 1.3;
+  font-weight: 700;
+  margin: 1.5rem 0 0.5rem 0;
+}
+
+.prose p {
+  margin: 0.25rem 0 1rem 0; /* pleasant reading rhythm */
+  color: rgba(6, 78, 59, 0.85);
+}
+
+.prose ul,
+.prose ol {
+  margin: 0.25rem 0 1rem 0;
+  padding-left: 1.25rem;
+}
+
+.prose li {
+  margin: 0.25rem 0;
+    list-style: disc;
+}
+
+.prose a {
+  color: #065f46; /* emerald-700 */
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose hr {
+  margin: 2rem 0;
+  border: none;
+  border-top: 1px solid rgba(6, 78, 59, 0.2);
+}
+
+.prose img, .prose video {
+  border-radius: 0.5rem;
+}
+
+.prose blockquote {
+  margin: 1rem 0 1.25rem 0;
+  padding-left: 1rem;
+  border-left: 4px solid #10b981; /* emerald-400 */
+  color: rgba(6, 78, 59, 0.9);
+  font-style: italic;
+}
+
+/* Color variant hook used by our pages */
+.prose.prose-emerald h1,
+.prose.prose-emerald h2,
+.prose.prose-emerald h3,
+.prose.prose-emerald h4 {
+  color: #064e3b; /* emerald-900 */
+}
+
+.prose.prose-emerald p,
+.prose.prose-emerald li {
+  color: rgba(6, 78, 59, 0.85);
+}

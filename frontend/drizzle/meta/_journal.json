@@ -22,6 +22,27 @@
       "when": 1759221163647,
       "tag": "0002_spotty_george_stacy",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1759234269221,
+      "tag": "0003_far_mach_iv",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1759238746410,
+      "tag": "0004_damp_swordsman",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1759238871545,
+      "tag": "0005_striped_the_fallen",
+      "breakpoints": true
     }
   ]
 }

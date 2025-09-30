@@ -3,7 +3,7 @@
 import { v2 as cloudinary, ConfigOptions } from "cloudinary";
 import { db } from "@/db/client";
 import { ads, images } from "@/db/schema";
-import { ilike, inArray, or, sql } from "drizzle-orm";
+import { ilike, inArray, or, sql, and, eq } from "drizzle-orm";
 
 export type Ad = {
   id: number;
@@ -70,21 +70,32 @@ export async function searchAds(req: SearchRequest): Promise<SearchResponse> {
     return { items: [], total, page, pageSize };
   }
 
-  // Fetch first image (by earliest images.id) per ad
+  // Fetch images for counts and also primary images for thumbnail
   const adIds = adRows.map((r) => r.id);
+
+  // All images for counts
   const imageRows = await db
     .select({ adsId: images.adsId, publicId: images.url }) // we store public_id in the url field (<=50)
     .from(images)
     .where(inArray(images.adsId, adIds))
     .orderBy(images.adsId, images.id);
 
-  const firstImageByAd = new Map<number, string>();
+  // Primary images per ad for thumbnail
+  const primaryRows = await db
+    .select({ adsId: images.adsId, publicId: images.url })
+    .from(images)
+    .where(and(inArray(images.adsId, adIds), eq(images.primaryImage, true)));
+
+  const primaryImageByAd = new Map<number, string>();
+  for (const row of primaryRows) {
+    if (row.adsId != null && row.publicId) {
+      primaryImageByAd.set(row.adsId, row.publicId);
+    }
+  }
+
   const imageCountByAd = new Map<number, number>();
   for (const row of imageRows) {
     if (row.adsId != null) {
-      if (!firstImageByAd.has(row.adsId)) {
-        firstImageByAd.set(row.adsId, row.publicId ?? "");
-      }
       imageCountByAd.set(row.adsId, (imageCountByAd.get(row.adsId) || 0) + 1);
     }
   }
@@ -99,17 +110,17 @@ export async function searchAds(req: SearchRequest): Promise<SearchResponse> {
   }
 
   const items: Ad[] = adRows.map((r) => {
-    const publicId = firstImageByAd.get(r.id);
+    const publicId = primaryImageByAd.get(r.id);
     let thumbnail: string | undefined = undefined;
     if (publicId) {
       // Generate a small, cropped thumbnail URL
       thumbnail = cloudinary.url(publicId, {
-        width: 96,
-        height: 96,
+        width: 256,
+        height: 256,
         crop: "fill",
         gravity: "auto",
-        fetch_format: "auto",
-        quality: "auto",
+        fetch_format: "jpg",
+        quality: 100,
         secure: true,
       });
     }

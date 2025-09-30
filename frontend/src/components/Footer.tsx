@@ -1,11 +1,13 @@
+import Link from "next/link";
+
 export default function Footer() {
   const links = [
-    { href: "/about", label: "About" },
-    { href: "/help", label: "Help" },
-    { href: "/safety", label: "Safety" },
-    { href: "/privacy", label: "Privacy" },
-    { href: "/terms", label: "Terms" },
-    { href: "/contact", label: "Contact" },
+    { href: "/about", label: "Über uns" },
+    { href: "/help", label: "Hilfe" },
+    { href: "/safety", label: "Sicherheit" },
+    { href: "/privacy", label: "Datenschutz" },
+    { href: "/terms", label: "Nutzungsbedingungen" },
+    { href: "/contact", label: "Kontakt" },
   ];
 
   return (
@@ -15,15 +17,15 @@ export default function Footer() {
           <ul className="flex flex-wrap gap-4 text-sm">
             {links.map((link) => (
               <li key={link.href}>
-                <a className="hover:text-white" href={link.href}>
+                <Link className="hover:text-white" href={link.href}>
                   {link.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
         </nav>
         <p className="mt-4 text-xs text-gray-300">
-          © {new Date().getFullYear()} Kleingarten. Plated with care 🌱
+          © {new Date().getFullYear()} Kleingarten. Mit Sorge gepflanzt 🌱
         </p>
       </div>
     </footer>
