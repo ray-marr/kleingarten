@@ -7,6 +7,7 @@ import { ilike, inArray, or, sql, and, eq, SQL } from "drizzle-orm";
 
 export type Ad = {
   id: number;
+  slug: string;
   title: string;
   description: string;
   thumbnail?: string; // Cloudinary URL if available
@@ -140,6 +141,7 @@ export async function searchAds(req: SearchRequest): Promise<SearchResponse> {
   const adRows = await db
     .select({
       id: ads.id,
+      slug: ads.slug,
       title: ads.title,
       description: ads.description,
       created: ads.creationTimeStamp,
@@ -211,6 +213,7 @@ export async function searchAds(req: SearchRequest): Promise<SearchResponse> {
     const imageCount = imageCountByAd.get(r.id) || 0;
     return {
       id: r.id,
+      slug: (r as any).slug ?? r["slug" as keyof typeof r],
       title: r.title,
       description: r.description,
       thumbnail,

@@ -45,6 +45,17 @@ export default async function Results({ searchParams }: Props) {
     return `?${params.toString()}`;
   };
 
+  // Helper to build ad details href preserving current search params
+  const makeAdHref = (slug: string) => {
+    const params = new URLSearchParams();
+    if (typeof item === "string" && item) params.set("item", item);
+    if (typeof location === "string" && location)
+      params.set("location", location);
+    if (page) params.set("page", String(page));
+    const query = params.toString();
+    return `/ad/${slug}${query ? `?${query}` : ""}`;
+  };
+
   console.log({ items });
 
   return (
@@ -56,8 +67,9 @@ export default async function Results({ searchParams }: Props) {
           {items.map((ad) => (
             <li
               key={ad.id}
-              className="w-full max-w-2xl h-24 overflow-hidden rounded-md bg-white text-emerald-900 shadow-md"
+              className="relative w-full max-w-2xl h-24 overflow-hidden rounded-md bg-white text-emerald-900 shadow-md hover:ring-2 hover:ring-emerald-200 cursor-pointer"
             >
+              <Link href={makeAdHref(ad.slug)} className="absolute inset-0" aria-label={`Open advert ${ad.title}`}></Link>
               <div className="flex h-full items-stretch gap-3">
                 <div className="relative">
                   {ad.thumbnail ? (
