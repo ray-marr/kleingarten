@@ -7,9 +7,6 @@ import { sql } from "drizzle-orm";
 import { generateRandomSlug } from "@/app/_helpers/stringTools";
 
 const MAX_FILES = 5;
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-const MIN_WIDTH = 300;
-const MIN_HEIGHT = 300;
 
 export type ActionResult = {
   ok: boolean;

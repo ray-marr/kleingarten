@@ -43,6 +43,13 @@
       "when": 1759238871545,
       "tag": "0005_striped_the_fallen",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1761580059265,
+      "tag": "0006_omniscient_ultron",
+      "breakpoints": true
     }
   ]
 }

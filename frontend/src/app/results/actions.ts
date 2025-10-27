@@ -3,7 +3,7 @@
 import { v2 as cloudinary, ConfigOptions } from "cloudinary";
 import { db } from "@/db/client";
 import { ads, images } from "@/db/schema";
-import { ilike, inArray, or, sql, and, eq } from "drizzle-orm";
+import { ilike, inArray, or, sql, and, eq, SQL } from "drizzle-orm";
 
 export type Ad = {
   id: number;
@@ -28,6 +28,45 @@ export type SearchResponse = {
   pageSize: number;
 };
 
+// Generate german character variants to make searches like "ae" match "ä" and vice versa.
+function generateGermanVariants(q: string): string[] {
+  const variants = new Set<string>();
+  variants.add(q);
+
+  // Map ASCII digraphs to umlauts/ß
+  const asciiToUmlaut: Array<[RegExp, string]> = [
+    [/ae/g, "ä"],
+    [/oe/g, "ö"],
+    [/ue/g, "ü"],
+    [/ss/g, "ß"],
+    [/AE/g, "Ä"],
+    [/OE/g, "Ö"],
+    [/UE/g, "Ü"],
+  ];
+  // Map umlauts/ß to ASCII digraphs
+  const umlautToAscii: Array<[RegExp, string]> = [
+    [/ä/g, "ae"],
+    [/ö/g, "oe"],
+    [/ü/g, "ue"],
+    [/ß/g, "ss"],
+    [/Ä/g, "AE"],
+    [/Ö/g, "OE"],
+    [/Ü/g, "UE"],
+  ];
+
+  let asciiVariant = q;
+  for (const [re, rep] of umlautToAscii)
+    asciiVariant = asciiVariant.replace(re, rep);
+  variants.add(asciiVariant);
+
+  let umlautVariant = q;
+  for (const [re, rep] of asciiToUmlaut)
+    umlautVariant = umlautVariant.replace(re, rep);
+  variants.add(umlautVariant);
+
+  return Array.from(variants).filter((v) => v.trim().length > 0);
+}
+
 export async function searchAds(req: SearchRequest): Promise<SearchResponse> {
   const pageSize =
     typeof req.pageSize === "number" && req.pageSize > 0 ? req.pageSize : 10;
@@ -36,16 +75,61 @@ export async function searchAds(req: SearchRequest): Promise<SearchResponse> {
 
   // Build a simple text filter for title/description from `item`
   const itemValue = Array.isArray(req.item) ? req.item[0] : req.item;
-  const q = itemValue?.trim();
+  const qRaw = itemValue?.trim();
 
-  // Where clause (currently only item filter; location reserved for future)
-  const where = q
-    ? or(ilike(ads.title, `%${q}%`), ilike(ads.description, `%${q}%`))
+  // Precompute variants for german characters
+  const variants = qRaw ? generateGermanVariants(qRaw) : [];
+
+  // Default where/order using ILIKE as fallback
+  let whereClause: SQL<unknown> | undefined = qRaw
+    ? or(ilike(ads.title, `%${qRaw}%`), ilike(ads.description, `%${qRaw}%`))
     : undefined;
+  let orderByClause: SQL<string> = sql`${ads.id} DESC`;
+
+  // Try to use pg_trgm similarity if available
+  if (qRaw) {
+    try {
+      // Build OR conditions for trigram similarity across variants
+      const conditions = variants.map(
+        (v) =>
+          sql`similarity(${ads.title}, ${v}) >= 0 OR similarity(${ads.description}, ${v}) >= 0 OR ${ads.title} ILIKE ${"%" + v + "%"} OR ${ads.description} ILIKE ${"%" + v + "%"}`,
+      );
+      const combined = conditions.reduce(
+        (acc, cur, idx) => (idx === 0 ? sql`${cur}` : sql`${acc} OR (${cur})`),
+        sql`` as SQL<unknown>,
+      );
+
+      whereClause = combined as SQL<unknown>;
+
+      // Order by best similarity score first, then id desc
+      const scoreExpr = variants.reduce(
+        (acc, v, idx) =>
+          idx === 0
+            ? sql`GREATEST(similarity(${ads.title}, ${v}), similarity(${ads.description}, ${v}))`
+            : sql`GREATEST(${acc}, GREATEST(similarity(${ads.title}, ${v}), similarity(${ads.description}, ${v})))`,
+        sql`` as SQL<unknown>,
+      );
+      orderByClause = sql`${scoreExpr} DESC, ${ads.creationTimeStamp} DESC`;
+    } catch (e) {
+      console.error("Error using pg_trgm similarity:", e);
+      // pg_trgm not available; fallback to ILIKE
+      whereClause = qRaw
+        ? or(
+            ...variants
+              .map((v) => [
+                ilike(ads.title, `%${v}%`),
+                ilike(ads.description, `%${v}%`),
+              ])
+              .flat(),
+          )
+        : undefined;
+      orderByClause = sql`${ads.id} DESC`;
+    }
+  }
 
   // Total count
   const totalRes = await db.execute(
-    sql`SELECT count(*)::int AS c FROM ${ads} ${where ? sql`WHERE ${where}` : sql``}`,
+    sql`SELECT count(*)::int AS c FROM ${ads} ${whereClause ? sql`WHERE ${whereClause}` : sql``}`,
   );
   const total =
     Array.isArray(totalRes.rows) && totalRes.rows[0]
@@ -61,8 +145,8 @@ export async function searchAds(req: SearchRequest): Promise<SearchResponse> {
       created: ads.creationTimeStamp,
     })
     .from(ads)
-    .where(where)
-    .orderBy(sql`${ads.id} DESC`)
+    .where(whereClause)
+    .orderBy(orderByClause)
     .limit(pageSize)
     .offset(offset);
 
