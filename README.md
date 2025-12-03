@@ -1,4 +1,6 @@
-This is an app for advertising wares from your kleingarten.
+App for advertising wares from your kleingarten.
+
+TODO: implement location searching
 
 ## Getting Started
 ### First, run the development server:
